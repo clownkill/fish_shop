@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from keyboard import get_inline_keyboard
+from keyboard import get_main_menu, get_back_btn
 from shop import (get_token, get_products,
                   get_product, get_product_image)
 
@@ -16,10 +16,10 @@ _database = None
 def start(bot, update):
     update.message.reply_text(
         'Please choose:',
-        reply_markup=get_inline_keyboard(products)
+        reply_markup=get_main_menu(products)
     )
 
-    return "HANDLE_MENU"
+    return 'HANDLE_MENU'
 
 
 def handle_menu(bot, update):
@@ -33,11 +33,12 @@ def handle_menu(bot, update):
     {product_data['description']}
     '''
     image_url = get_product_image(shop_token, product_data)
- 
+
     bot.send_photo(
         chat_id=query.message.chat_id,
-        photo=image_url,
-        caption=message
+        photo=open('dorado-tushka-okhlazhdennaya-nepotroshenaya-.jpg', 'rb'), # photo=image_url,
+        caption=message,
+        reply_markup=get_back_btn()
     )
 
     bot.delete_message(
@@ -45,7 +46,24 @@ def handle_menu(bot, update):
         message_id=query.message.message_id
     )
 
-    return "START"
+    return 'HANDLE_DESCRIPTION'
+
+
+def handle_description(bot, update):
+    query = update.callback_query
+    if query.data == 'back':
+        bot.send_message(
+            chat_id=query.message.chat_id,
+            text='Please choose:',
+            reply_markup=get_main_menu(products)
+        )
+        
+        bot.delete_message(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+
+        return 'HANDLE_MENU'
 
 
 def handle_users_reply(bot, update):
@@ -65,7 +83,8 @@ def handle_users_reply(bot, update):
 
     states_functions = {
         'START': start,
-        'HANDLE_MENU': handle_menu
+        'HANDLE_MENU': handle_menu,
+        'HANDLE_DESCRIPTION': handle_description,
     }
     state_handler = states_functions[user_state]
     # Если вы вдруг не заметите, что python-telegram-bot перехватывает ошибки.
