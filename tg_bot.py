@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
+from keyboard import inline_kb_markup
+
 _database = None
 
 
@@ -16,7 +18,11 @@ def start(bot, update):
     Бот отвечает пользователю фразой "Привет!" и переводит его в состояние ECHO.
     Теперь в ответ на его команды будет запускаеться хэндлер echo.
     """
-    update.message.reply_text(text='Привет!')
+    update.message.reply_text(
+        'Please choose:',
+        reply_markup=inline_kb_markup
+    )
+    
     return "ECHO"
 
 
