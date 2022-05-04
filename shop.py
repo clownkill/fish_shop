@@ -20,7 +20,7 @@ def get_token(client_id, client_secret):
     return token
 
 
-def get_product_ids(token):
+def get_products(token):
     url = 'https://api.moltin.com/v2/products/'
     headers = {
         'Authorization': f'Bearer {token}',
@@ -34,9 +34,8 @@ def get_product_ids(token):
     shop_data = response.json()
 
     products = shop_data['data']
-    product_ids = [product['id'] for product in products]
 
-    return product_ids
+    return products
 
 
 def add_to_cart(token, product_id):

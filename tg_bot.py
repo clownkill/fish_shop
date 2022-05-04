@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from keyboard import inline_kb_markup
+from keyboard import get_inline_keyboard
+from shop import get_token, get_products
 
 _database = None
 
@@ -20,9 +21,9 @@ def start(bot, update):
     """
     update.message.reply_text(
         'Please choose:',
-        reply_markup=inline_kb_markup
+        reply_markup=get_inline_keyboard(products)
     )
-    
+
     return "ECHO"
 
 
@@ -100,8 +101,14 @@ def get_database_connection():
 
 if __name__ == '__main__':
     load_dotenv()
-    token = os.getenv("TELEGRAM_TOKEN")
-    updater = Updater(token)
+    client_id = os.getenv('CLIENT_ID')
+    client_secret = os.getenv('CLIENT_SECRET')
+    tg_token = os.getenv("TELEGRAM_TOKEN")
+
+    shop_token = get_token(client_id, client_secret)
+    products = get_products(shop_token)
+
+    updater = Updater(tg_token)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CallbackQueryHandler(handle_users_reply))
     dispatcher.add_handler(MessageHandler(Filters.text, handle_users_reply))
