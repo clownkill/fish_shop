@@ -1,5 +1,5 @@
 import os
-from random import choice
+from pprint import pprint
 
 import requests
 from dotenv import load_dotenv
@@ -95,7 +95,7 @@ def add_to_cart(token, product_id, cart_id, quantity):
     )
     response.raise_for_status()
 
-    print(response.text)
+    pprint(response.text)
 
 
 def get_cart(token):

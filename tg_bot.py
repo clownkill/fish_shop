@@ -12,6 +12,7 @@ from shop import (get_token, get_products,
                   add_to_cart,)
 
 _database = None
+_product_id = None
 
 
 def start(bot, update):
@@ -25,8 +26,9 @@ def start(bot, update):
 
 def handle_menu(bot, update):
     query = update.callback_query
-    product_id = query.data
-    product_data = get_product(shop_token, product_id)
+    global _product_id
+    _product_id = query.data
+    product_data = get_product(shop_token, _product_id)
     product_name = product_data['name']
     product_weight = product_data['weight']['kg']
     product_price = product_data['meta']['display_price']['with_tax']['formatted']
@@ -41,7 +43,7 @@ def handle_menu(bot, update):
 
     bot.send_photo(
         chat_id=query.message.chat_id,
-        photo=open('dorado-tushka-okhlazhdennaya-nepotroshenaya-.jpg', 'rb'), # photo=image_url,
+        photo=open('dorado.jpg', 'rb'), # photo=image_url,
         caption=message,
         reply_markup=get_description_menu()
     )
@@ -67,7 +69,13 @@ def handle_description(bot, update):
             message_id=query.message.message_id
         )
         return 'HANDLE_MENU'
-    elif query.data == '1':
+    elif query.data in ('1', '5', '10'):
+        add_to_cart(
+            token=shop_token,
+            product_id=_product_id,
+            cart_id=query.message.from_user['id'],
+            quantity=int(query.data)
+        )
         return 'HANDLE_DESCRIPTION'
 
 
@@ -115,9 +123,9 @@ def get_database_connection():
         _database = redis.Redis(
             host=database_host,
             port=database_port,
+            password=database_password,
             decode_responses=True,
-            password=None,
-            db=1)
+        )
     return _database
 
 
