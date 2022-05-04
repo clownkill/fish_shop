@@ -7,51 +7,48 @@ from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
 from keyboard import get_inline_keyboard
-from shop import get_token, get_products
+from shop import (get_token, get_products,
+                  get_product, get_product_image)
 
 _database = None
 
 
 def start(bot, update):
-    """
-    Хэндлер для состояния START.
-
-    Бот отвечает пользователю фразой "Привет!" и переводит его в состояние ECHO.
-    Теперь в ответ на его команды будет запускаеться хэндлер echo.
-    """
     update.message.reply_text(
         'Please choose:',
         reply_markup=get_inline_keyboard(products)
     )
 
-    return "ECHO"
+    return "HANDLE_MENU"
 
 
-def echo(bot, update):
-    """
-    Хэндлер для состояния ECHO.
+def handle_menu(bot, update):
+    query = update.callback_query
+    product_id = query.data
+    product_data = get_product(shop_token, product_id)
 
-    Бот отвечает пользователю тем же, что пользователь ему написал.
-    Оставляет пользователя в состоянии ECHO.
-    """
-    users_reply = update.message.text
-    update.message.reply_text(users_reply)
-    return "ECHO"
+    message = f'''
+    {product_data['name']}
+    {product_data['weight']['kg']} кг - {product_data['meta']['display_price']['with_tax']['formatted']}
+    {product_data['description']}
+    '''
+    image_url = get_product_image(shop_token, product_data)
+ 
+    bot.send_photo(
+        chat_id=query.message.chat_id,
+        photo=image_url,
+        caption=message
+    )
+
+    bot.delete_message(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id
+    )
+
+    return "START"
 
 
 def handle_users_reply(bot, update):
-    """
-    Функция, которая запускается при любом сообщении от пользователя и решает как его обработать.
-    Эта функция запускается в ответ на эти действия пользователя:
-        * Нажатие на inline-кнопку в боте
-        * Отправка сообщения боту
-        * Отправка команды боту
-    Она получает стейт пользователя из базы данных и запускает соответствующую функцию-обработчик (хэндлер).
-    Функция-обработчик возвращает следующее состояние, которое записывается в базу данных.
-    Если пользователь только начал пользоваться ботом, Telegram форсит его написать "/start",
-    поэтому по этой фразе выставляется стартовое состояние.
-    Если пользователь захочет начать общение с ботом заново, он также может воспользоваться этой командой.
-    """
     db = get_database_connection()
     if update.message:
         user_reply = update.message.text
@@ -68,7 +65,7 @@ def handle_users_reply(bot, update):
 
     states_functions = {
         'START': start,
-        'ECHO': echo
+        'HANDLE_MENU': handle_menu
     }
     state_handler = states_functions[user_state]
     # Если вы вдруг не заметите, что python-telegram-bot перехватывает ошибки.
@@ -102,10 +99,9 @@ def get_database_connection():
 if __name__ == '__main__':
     load_dotenv()
     client_id = os.getenv('CLIENT_ID')
-    client_secret = os.getenv('CLIENT_SECRET')
     tg_token = os.getenv("TELEGRAM_TOKEN")
 
-    shop_token = get_token(client_id, client_secret)
+    shop_token = get_token(client_id)
     products = get_products(shop_token)
 
     updater = Updater(tg_token)
