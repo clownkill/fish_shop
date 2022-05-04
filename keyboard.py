@@ -13,9 +13,9 @@ def get_main_menu(products):
 def get_description_menu():
     inline_keyboard = [
         [
-            InlineKeyboardButton('1 кг', callback_data='1'),
-            InlineKeyboardButton('5 кг', callback_data='5'),
-            InlineKeyboardButton('10 кг', callback_data='10')
+            InlineKeyboardButton('1 кг', callback_data=1),
+            InlineKeyboardButton('5 кг', callback_data=5),
+            InlineKeyboardButton('10 кг', callback_data=10)
         ],
         [InlineKeyboardButton('Назад', callback_data='back')]
     ]

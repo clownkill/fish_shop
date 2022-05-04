@@ -69,11 +69,11 @@ def handle_description(bot, update):
             message_id=query.message.message_id
         )
         return 'HANDLE_MENU'
-    elif query.data in ('1', '5', '10'):
+    elif query.data.isdigit():
         add_to_cart(
             token=shop_token,
             product_id=_product_id,
-            cart_id=query.message.from_user['id'],
+            cart_id=query.message['chat']['id'],
             quantity=int(query.data)
         )
         return 'HANDLE_DESCRIPTION'
