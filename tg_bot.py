@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from keyboard import get_main_menu, get_back_btn
+from keyboard import get_main_menu, get_description_menu
 from shop import (get_token, get_products,
-                  get_product, get_product_image)
+                  get_product, get_product_image,
+                  add_to_cart,)
 
 _database = None
 
@@ -26,11 +27,15 @@ def handle_menu(bot, update):
     query = update.callback_query
     product_id = query.data
     product_data = get_product(shop_token, product_id)
+    product_name = product_data['name']
+    product_weight = product_data['weight']['kg']
+    product_price = product_data['meta']['display_price']['with_tax']['formatted']
+    product_description = product_data['description']
 
     message = f'''
-    {product_data['name']}
-    {product_data['weight']['kg']} кг - {product_data['meta']['display_price']['with_tax']['formatted']}
-    {product_data['description']}
+    {product_name}
+    {product_price} per {product_weight} kg
+    {product_description}
     '''
     image_url = get_product_image(shop_token, product_data)
 
@@ -38,7 +43,7 @@ def handle_menu(bot, update):
         chat_id=query.message.chat_id,
         photo=open('dorado-tushka-okhlazhdennaya-nepotroshenaya-.jpg', 'rb'), # photo=image_url,
         caption=message,
-        reply_markup=get_back_btn()
+        reply_markup=get_description_menu()
     )
 
     bot.delete_message(
@@ -57,13 +62,14 @@ def handle_description(bot, update):
             text='Please choose:',
             reply_markup=get_main_menu(products)
         )
-        
         bot.delete_message(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id
         )
-
         return 'HANDLE_MENU'
+    elif query.data == '1':
+        return 'HANDLE_DESCRIPTION'
+
 
 
 def handle_users_reply(bot, update):

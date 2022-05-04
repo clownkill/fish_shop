@@ -10,8 +10,15 @@ def get_main_menu(products):
     return inline_kb_markup
 
 
-def get_back_btn():
-    inline_keyboard = [[InlineKeyboardButton('Назад', callback_data='back')]]
+def get_description_menu():
+    inline_keyboard = [
+        [
+            InlineKeyboardButton('1 кг', callback_data='1'),
+            InlineKeyboardButton('5 кг', callback_data='5'),
+            InlineKeyboardButton('10 кг', callback_data='10')
+        ],
+        [InlineKeyboardButton('Назад', callback_data='back')]
+    ]
     inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
 
     return inline_kb_markup

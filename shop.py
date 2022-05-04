@@ -74,8 +74,8 @@ def get_product_image(token, product_data):
     return image_url
 
 
-def add_to_cart(token, product_id):
-    url = 'https://api.moltin.com/v2/carts/abc/items'
+def add_to_cart(token, product_id, cart_id, quantity):
+    url = f'https://api.moltin.com/v2/carts/{cart_id}/items'
     headers = {
         'Authorization': f'Bearer {token}',
     }
@@ -84,7 +84,7 @@ def add_to_cart(token, product_id):
         'data': {
             'id': product_id,
             'type': 'cart_item',
-            'quantity': 1,
+            'quantity': quantity,
         },
     }
 
