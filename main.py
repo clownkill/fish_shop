@@ -5,6 +5,21 @@ import requests
 from dotenv import load_dotenv
 
 
+def get_token(client_id, client_secret):
+    data = {
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'grant_type': 'client_credentials',
+    }
+
+    response = requests.post('https://api.moltin.com/oauth/access_token', data=data)
+    response.raise_for_status()
+
+    token = response.json()['access_token']
+
+    return token
+
+
 def get_product_ids(token):
     url = 'https://api.moltin.com/v2/products/'
     headers = {
@@ -54,16 +69,16 @@ def get_cart(token):
 
 def main():
     load_dotenv()
-    shop_token = os.getenv('SHOP_ACCESS_TOKEN')
+    client_id = os.getenv('CLIENT_ID')
+    client_secret = os.getenv('CLIENT_SECRET')
+
+    token = get_token(client_id, client_secret)
 
     # product_ids = get_product_ids(shop_token)
 
     # add_to_cart(shop_token, choice(product_ids))
 
-    get_cart(shop_token)
-
-
-
+    get_cart(token)
 
 
 if __name__ == '__main__':
