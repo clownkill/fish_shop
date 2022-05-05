@@ -1,5 +1,4 @@
 import os
-import logging
 from textwrap import dedent
 
 import redis
@@ -21,8 +20,8 @@ _product_id = None
 
 
 def get_cart_message(cart_id):
-    cart_items = get_cart_items(shop_token, cart_id)
-    cart_total_amount = get_cart_total_amount(shop_token, cart_id)
+    cart_items = get_cart_items(access_token, cart_id)
+    cart_total_amount = get_cart_total_amount(access_token, cart_id)
     total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
 
     message = ''
@@ -58,7 +57,7 @@ def handle_menu(bot, update):
     query = update.callback_query
     global _product_id
     _product_id = query.data
-    product_data = get_product(shop_token, _product_id)
+    product_data = get_product(access_token, _product_id)
     product_name = product_data['name']
     product_weight = product_data['weight']['kg']
     product_price = product_data['meta']['display_price']['with_tax']['formatted']
@@ -69,11 +68,11 @@ def handle_menu(bot, update):
     {product_price} per {product_weight} kg
     {product_description}
     '''
-    image_url = get_product_image(shop_token, product_data)
+    image_url = get_product_image(access_token, product_data)
 
     bot.send_photo(
         chat_id=query.message.chat_id,
-        photo=open('dorado.jpg', 'rb'), # photo=image_url,
+        photo=image_url,
         caption=dedent(message),
         reply_markup=get_description_menu()
     )
@@ -102,7 +101,7 @@ def handle_description(bot, update):
 
     elif query.data == 'cart':
         cart_id = query.message['chat']['id']
-        cart_items = get_cart_items(shop_token, cart_id)
+        cart_items = get_cart_items(access_token, cart_id)
         message = get_cart_message(cart_id)
 
         bot.send_message(
@@ -119,7 +118,7 @@ def handle_description(bot, update):
 
     elif query.data.isdigit():
         add_to_cart(
-            token=shop_token,
+            token=access_token,
             product_id=_product_id,
             cart_id=query.message['chat']['id'],
             quantity=int(query.data)
@@ -132,8 +131,8 @@ def handle_cart(bot, update):
     cart_id = query.message['chat']['id']
     if query.data.startswith('del'):
         item_id = query.data.split(' ')[-1]
-        delete_cart_items(shop_token, cart_id, item_id)
-        cart_items = get_cart_items(shop_token, cart_id)
+        delete_cart_items(access_token, cart_id, item_id)
+        cart_items = get_cart_items(access_token, cart_id)
         message = get_cart_message(cart_id)
         bot.send_message(
             chat_id=query.message.chat_id,
@@ -184,7 +183,7 @@ def handle_waiting_email(bot, update):
         text=dedent(message)
     )
 
-    create_customer(shop_token, username, email)
+    create_customer(access_token, username, email)
 
     return 'START'
 
@@ -234,10 +233,8 @@ def get_database_connection():
         _database = redis.Redis(
             host=database_host,
             port=database_port,
-            # password=database_password,
-            password=None,
+            password=database_password,
             decode_responses=True,
-            db=1
         )
     return _database
 
@@ -247,8 +244,8 @@ if __name__ == '__main__':
     client_id = os.getenv('CLIENT_ID')
     tg_token = os.getenv("TELEGRAM_TOKEN")
 
-    shop_token = get_token(client_id)
-    products = get_products(shop_token)
+    access_token = get_token(client_id)
+    products = get_products(access_token)
 
     updater = Updater(tg_token)
     dispatcher = updater.dispatcher
