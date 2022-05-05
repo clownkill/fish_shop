@@ -1,7 +1,8 @@
 import os
 import logging
-import redis
+from textwrap import dedent
 
+import redis
 from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
@@ -9,7 +10,8 @@ from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 from keyboard import get_main_menu, get_description_menu
 from shop import (get_token, get_products,
                   get_product, get_product_image,
-                  add_to_cart,)
+                  add_to_cart, get_cart_items,
+                  get_cart_total_amount)
 
 _database = None
 _product_id = None
@@ -44,7 +46,7 @@ def handle_menu(bot, update):
     bot.send_photo(
         chat_id=query.message.chat_id,
         photo=open('dorado.jpg', 'rb'), # photo=image_url,
-        caption=message,
+        caption=dedent(message),
         reply_markup=get_description_menu()
     )
 
@@ -69,6 +71,40 @@ def handle_description(bot, update):
             message_id=query.message.message_id
         )
         return 'HANDLE_MENU'
+
+    elif query.data == 'cart':
+        cart_id = query.message['chat']['id']
+
+        cart_items = get_cart_items(shop_token, cart_id)
+        cart_total_amount = get_cart_total_amount(shop_token, cart_id)
+        total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
+        message = ''
+        for item in cart_items:
+            item_name = item['name']
+            item_description = item['description']
+            item_quantity = item['quantity']
+            item_price = item['meta']['display_price']['with_tax']['unit']['formatted']
+            total_price = item['meta']['display_price']['with_tax']['value']['formatted']
+            message += f'''
+            {item_name}
+            {item_description}
+            {item_price} per kg
+            {item_quantity}kg in cart for {total_price}
+            
+            '''
+        message += total_amount
+
+        bot.send_message(
+            chat_id=query.message.chat_id,
+            text=dedent(message),
+        )
+        bot.delete_message(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+
+        return 'HANDLE_DESCRIPTIONN'
+
     elif query.data.isdigit():
         add_to_cart(
             token=shop_token,
@@ -123,8 +159,10 @@ def get_database_connection():
         _database = redis.Redis(
             host=database_host,
             port=database_port,
-            password=database_password,
+            # password=database_password,
+            password=None,
             decode_responses=True,
+            db=1
         )
     return _database
 

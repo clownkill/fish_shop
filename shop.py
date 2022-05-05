@@ -96,27 +96,31 @@ def add_to_cart(token, product_id, cart_id, quantity):
     response.raise_for_status()
 
 
-def get_cart(token, cart_id):
+def get_cart_items(token, cart_id):
+    url = f'https://api.moltin.com/v2/carts/{cart_id}/items'
     headers = {
         'Authorization': f'Bearer {token}',
     }
 
-    response = requests.get(f'https://api.moltin.com/v2/carts/{cart_id}/items', headers=headers)
-    print(response.text)
+    response = requests.get(
+        url,
+        headers=headers
+    )
+    response.raise_for_status()
+
+    return response.json()['data']
 
 
-def main():
-    load_dotenv()
-    client_id = os.getenv('CLIENT_ID')
+def get_cart_total_amount(token, cart_id):
+    url = f'https://api.moltin.com/v2/carts/{cart_id}'
+    headers = {
+        'Authorization': f'Bearer {token}',
+    }
 
-    token = get_token(client_id)
+    response = requests.get(
+        url,
+        headers=headers
+    )
+    response.raise_for_status()
 
-    # product_ids = get_product_ids(shop_token)
-
-    # add_to_cart(shop_token, choice(product_ids))
-
-    pprint(get_cart(token, cart_id='185027933'))
-
-
-if __name__ == '__main__':
-    main()
+    return response.json()['data']

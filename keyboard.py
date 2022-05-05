@@ -17,8 +17,8 @@ def get_description_menu():
             InlineKeyboardButton('5 кг', callback_data=5),
             InlineKeyboardButton('10 кг', callback_data=10)
         ],
-        [InlineKeyboardButton('Назад', callback_data='back')],
         [InlineKeyboardButton('Корзина', callback_data='cart')],
+        [InlineKeyboardButton('Назад', callback_data='back')],
     ]
     inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
 
