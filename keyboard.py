@@ -30,6 +30,7 @@ def get_cart_menu(cart_items):
         [InlineKeyboardButton(f"Убрать из корзины {item['name']}", callback_data=f"del {item['id']}")]
         for item in cart_items
     ]
+    inline_keyboard.append([InlineKeyboardButton('Оплатить', callback_data='pay')])
     inline_keyboard.append([InlineKeyboardButton('В меню', callback_data='menu')])
     inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
 

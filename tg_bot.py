@@ -146,6 +146,18 @@ def handle_cart(bot, update):
 
         return 'HANDLE_CART'
 
+    elif query.data == 'pay':
+        bot.send_message(
+            chat_id=query.message.chat_id,
+            text='Для оформления заказа введите ваш email'
+        )
+        bot.delete_message(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+
+        return 'WAITING_EMAIL'
+
     elif query.data == 'menu':
         bot.send_message(
             chat_id=query.message.chat_id,
@@ -157,6 +169,20 @@ def handle_cart(bot, update):
             message_id=query.message.message_id
         )
         return 'HANDLE_MENU'
+
+
+def handle_waiting_email(bot, update):
+    email = update.message.text
+    message = f'''
+    Вы ввели email: {email}
+    
+    В ближайшее время менеджер свяжется с вами для оформления заказа.
+    '''
+    update.message.reply_text(
+        text=dedent(message)
+    )
+
+    return 'START'
 
 
 def handle_users_reply(bot, update):
@@ -179,6 +205,7 @@ def handle_users_reply(bot, update):
         'HANDLE_MENU': handle_menu,
         'HANDLE_DESCRIPTION': handle_description,
         'HANDLE_CART': handle_cart,
+        'WAITING_EMAIL': handle_waiting_email,
     }
     state_handler = states_functions[user_state]
     # Если вы вдруг не заметите, что python-telegram-bot перехватывает ошибки.
