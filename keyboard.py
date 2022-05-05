@@ -23,3 +23,14 @@ def get_description_menu():
     inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
 
     return inline_kb_markup
+
+
+def get_cart_menu(cart_items):
+    inline_keyboard = [
+        [InlineKeyboardButton(f"Убрать из корзины {item['name']}", callback_data=f"del {item['id']}")]
+        for item in cart_items
+    ]
+    inline_keyboard.append([InlineKeyboardButton('В меню', callback_data='menu')])
+    inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
+
+    return inline_kb_markup

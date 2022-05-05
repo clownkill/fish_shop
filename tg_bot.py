@@ -7,11 +7,13 @@ from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
 
-from keyboard import get_main_menu, get_description_menu
+from keyboard import (get_main_menu,
+                      get_description_menu,
+                      get_cart_menu)
 from shop import (get_token, get_products,
                   get_product, get_product_image,
                   add_to_cart, get_cart_items,
-                  get_cart_total_amount)
+                  get_cart_total_amount, delete_cart_items)
 
 _database = None
 _product_id = None
@@ -74,11 +76,12 @@ def handle_description(bot, update):
 
     elif query.data == 'cart':
         cart_id = query.message['chat']['id']
-
         cart_items = get_cart_items(shop_token, cart_id)
         cart_total_amount = get_cart_total_amount(shop_token, cart_id)
         total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
+
         message = ''
+
         for item in cart_items:
             item_name = item['name']
             item_description = item['description']
@@ -97,13 +100,14 @@ def handle_description(bot, update):
         bot.send_message(
             chat_id=query.message.chat_id,
             text=dedent(message),
+            reply_markup=get_cart_menu(cart_items)
         )
         bot.delete_message(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id
         )
 
-        return 'HANDLE_DESCRIPTIONN'
+        return 'HANDLE_CART'
 
     elif query.data.isdigit():
         add_to_cart(
@@ -114,6 +118,56 @@ def handle_description(bot, update):
         )
         return 'HANDLE_DESCRIPTION'
 
+
+def handle_cart(bot, update):
+    query = update.callback_query
+    cart_id = query.message['chat']['id']
+    if query.data.startswith('del'):
+        item_id = query.data.split(' ')[-1]
+        delete_cart_items(shop_token, cart_id, item_id)
+        cart_items = get_cart_items(shop_token, cart_id)
+        cart_total_amount = get_cart_total_amount(shop_token, cart_id)
+        total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
+
+        message = ''
+
+        for item in cart_items:
+            item_name = item['name']
+            item_description = item['description']
+            item_quantity = item['quantity']
+            item_price = item['meta']['display_price']['with_tax']['unit']['formatted']
+            total_price = item['meta']['display_price']['with_tax']['value']['formatted']
+            message += f'''
+                    {item_name}
+                    {item_description}
+                    {item_price} per kg
+                    {item_quantity}kg in cart for {total_price}
+
+                    '''
+        message += total_amount
+        bot.send_message(
+            chat_id=query.message.chat_id,
+            text=dedent(message),
+            reply_markup=get_cart_menu(cart_items)
+        )
+        bot.delete_message(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+
+        return 'HANDLE_CART'
+
+    elif query.data == 'menu':
+        bot.send_message(
+            chat_id=query.message.chat_id,
+            text='Please choose:',
+            reply_markup=get_main_menu(products)
+        )
+        bot.delete_message(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id
+        )
+        return 'HANDLE_MENU'
 
 
 def handle_users_reply(bot, update):
@@ -135,6 +189,7 @@ def handle_users_reply(bot, update):
         'START': start,
         'HANDLE_MENU': handle_menu,
         'HANDLE_DESCRIPTION': handle_description,
+        'HANDLE_CART': handle_cart,
     }
     state_handler = states_functions[user_state]
     # Если вы вдруг не заметите, что python-telegram-bot перехватывает ошибки.

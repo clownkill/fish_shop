@@ -124,3 +124,13 @@ def get_cart_total_amount(token, cart_id):
     response.raise_for_status()
 
     return response.json()['data']
+
+
+def delete_cart_items(token, cart_id, item_id):
+    url = f'https://api.moltin.com/v2/carts/{cart_id}/items/{item_id}'
+    headers = {
+        'Authorization': f'Bearer {token}',
+    }
+
+    response = requests.delete(url, headers=headers)
+    response.raise_for_status()
