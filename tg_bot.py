@@ -13,7 +13,8 @@ from keyboard import (get_main_menu,
 from shop import (get_token, get_products,
                   get_product, get_product_image,
                   add_to_cart, get_cart_items,
-                  get_cart_total_amount, delete_cart_items)
+                  get_cart_total_amount, delete_cart_items,
+                  create_customer)
 
 _database = None
 _product_id = None
@@ -172,6 +173,7 @@ def handle_cart(bot, update):
 
 
 def handle_waiting_email(bot, update):
+    username = update.message['chat']['username']
     email = update.message.text
     message = f'''
     Вы ввели email: {email}
@@ -181,6 +183,8 @@ def handle_waiting_email(bot, update):
     update.message.reply_text(
         text=dedent(message)
     )
+
+    create_customer(shop_token, username, email)
 
     return 'START'
 
