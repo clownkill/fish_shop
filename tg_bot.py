@@ -19,6 +19,31 @@ _database = None
 _product_id = None
 
 
+def get_cart_message(cart_id):
+    cart_items = get_cart_items(shop_token, cart_id)
+    cart_total_amount = get_cart_total_amount(shop_token, cart_id)
+    total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
+
+    message = ''
+
+    for item in cart_items:
+        item_name = item['name']
+        item_description = item['description']
+        item_quantity = item['quantity']
+        item_price = item['meta']['display_price']['with_tax']['unit']['formatted']
+        total_price = item['meta']['display_price']['with_tax']['value']['formatted']
+        message += f'''
+                {item_name}
+                {item_description}
+                {item_price} per kg
+                {item_quantity}kg in cart for {total_price}
+
+                '''
+    message += total_amount
+
+    return message
+
+
 def start(bot, update):
     update.message.reply_text(
         'Please choose:',
@@ -77,25 +102,7 @@ def handle_description(bot, update):
     elif query.data == 'cart':
         cart_id = query.message['chat']['id']
         cart_items = get_cart_items(shop_token, cart_id)
-        cart_total_amount = get_cart_total_amount(shop_token, cart_id)
-        total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
-
-        message = ''
-
-        for item in cart_items:
-            item_name = item['name']
-            item_description = item['description']
-            item_quantity = item['quantity']
-            item_price = item['meta']['display_price']['with_tax']['unit']['formatted']
-            total_price = item['meta']['display_price']['with_tax']['value']['formatted']
-            message += f'''
-            {item_name}
-            {item_description}
-            {item_price} per kg
-            {item_quantity}kg in cart for {total_price}
-            
-            '''
-        message += total_amount
+        message = get_cart_message(cart_id)
 
         bot.send_message(
             chat_id=query.message.chat_id,
@@ -126,25 +133,7 @@ def handle_cart(bot, update):
         item_id = query.data.split(' ')[-1]
         delete_cart_items(shop_token, cart_id, item_id)
         cart_items = get_cart_items(shop_token, cart_id)
-        cart_total_amount = get_cart_total_amount(shop_token, cart_id)
-        total_amount = cart_total_amount['meta']['display_price']['with_tax']['formatted']
-
-        message = ''
-
-        for item in cart_items:
-            item_name = item['name']
-            item_description = item['description']
-            item_quantity = item['quantity']
-            item_price = item['meta']['display_price']['with_tax']['unit']['formatted']
-            total_price = item['meta']['display_price']['with_tax']['value']['formatted']
-            message += f'''
-                    {item_name}
-                    {item_description}
-                    {item_price} per kg
-                    {item_quantity}kg in cart for {total_price}
-
-                    '''
-        message += total_amount
+        message = get_cart_message(cart_id)
         bot.send_message(
             chat_id=query.message.chat_id,
             text=dedent(message),
