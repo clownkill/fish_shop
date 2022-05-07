@@ -1,7 +1,9 @@
+import logging
 import os
 from textwrap import dedent
 
 import redis
+import telegram
 from dotenv import load_dotenv
 from telegram.ext import Filters, Updater
 from telegram.ext import CallbackQueryHandler, CommandHandler, MessageHandler
@@ -15,8 +17,19 @@ from shop import (get_token, get_products,
                   get_cart_total_amount, delete_cart_items,
                   create_customer)
 
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+logger = logging.getLogger(__name__)
+
 _database = None
 _product_id = None
+
+
+def error(state, error):
+    logger.warning(f'State {state} caused error {error}')
 
 
 def get_cart_message(cart_id):
@@ -211,14 +224,11 @@ def handle_users_reply(bot, update):
         'WAITING_EMAIL': handle_waiting_email,
     }
     state_handler = states_functions[user_state]
-    # Если вы вдруг не заметите, что python-telegram-bot перехватывает ошибки.
-    # Оставляю этот try...except, чтобы код не падал молча.
-    # Этот фрагмент можно переписать.
     try:
         next_state = state_handler(bot, update)
         db.set(chat_id, next_state)
     except Exception as err:
-        print(err)
+        error(user_state, err)
 
 
 def get_database_connection():
@@ -252,4 +262,5 @@ if __name__ == '__main__':
     dispatcher.add_handler(CallbackQueryHandler(handle_users_reply))
     dispatcher.add_handler(MessageHandler(Filters.text, handle_users_reply))
     dispatcher.add_handler(CommandHandler('start', handle_users_reply))
+    dispatcher.add_error_handler(error)
     updater.start_polling()
