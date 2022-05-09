@@ -87,8 +87,7 @@ def handle_menu(context, update, access_token):
     {product_price} per {product_weight} kg
     {product_description}
     '''
-    # image_url = get_product_image(access_token, product_data)
-    image_url = 'https://pervie.ru/files/product/images/l_ad9db9599d165274afbc801e6c571d95.jpg'
+    image_url = get_product_image(access_token, product_data)
 
     context.bot.send_photo(
         chat_id=query.message.chat_id,
