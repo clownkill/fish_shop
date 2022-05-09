@@ -87,7 +87,8 @@ def handle_menu(context, update, access_token):
     {product_price} per {product_weight} kg
     {product_description}
     '''
-    image_url = get_product_image(access_token, product_data)
+    # image_url = get_product_image(access_token, product_data)
+    image_url = 'https://pervie.ru/files/product/images/l_ad9db9599d165274afbc801e6c571d95.jpg'
 
     context.bot.send_photo(
         chat_id=query.message.chat_id,
@@ -144,6 +145,13 @@ def handle_description(context, update, access_token, products):
             product_id=product_id,
             cart_id=query.message['chat']['id'],
             quantity=int(query.data)
+        )
+        product_data = get_product(access_token, product_id)
+        product_name = product_data['name']
+        context.bot.answer_callback_query(
+            callback_query_id=query.id,
+            text=f'Вы добавили в корзину {query.data} кг {product_name}',
+            show_alert=True
         )
         return 'HANDLE_DESCRIPTION'
 
