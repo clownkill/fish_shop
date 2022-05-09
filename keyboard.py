@@ -6,7 +6,6 @@ def get_main_menu(products):
         [InlineKeyboardButton(product['name'], callback_data=product['id'])] for product in products
     ]
     inline_kb_markup = InlineKeyboardMarkup(inline_keyboard)
-
     return inline_kb_markup
 
 
