@@ -251,11 +251,6 @@ def handle_users_reply(update, context, client_id):
         'WAITING_EMAIL': partial(handle_waiting_email, access_token=access_token),
     }
     state_handler = states_functions[user_state]
-    try:
-        next_state = state_handler(context, update)
-        db.set(chat_id, next_state)
-    except Exception as err:
-        error(user_state, err)
 
 
 def get_database_connection():
