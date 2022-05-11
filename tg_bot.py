@@ -30,7 +30,7 @@ _database = None
 
 
 def error(state, error):
-    logger.warning(f'State {state} caused error {error}')
+    logger.warning(f'Bot caused error {error.error}')
 
 
 def get_cart_message(cart_id, access_token):
@@ -70,11 +70,6 @@ def start(context, update, products):
 def handle_menu(context, update, access_token):
     query = update.callback_query
     product_id = query.data
-    user = f"user_tg_{query.message.chat_id}"
-    _database.set(
-        user,
-        json.dumps({'product_id': product_id})
-    )
     context.user_data['product_id'] = product_id
     product_data = get_product(access_token, product_id)
     product_name = product_data['name']
@@ -106,9 +101,7 @@ def handle_menu(context, update, access_token):
 
 def handle_description(context, update, access_token, products):
     query = update.callback_query
-    user = f"user_tg_{query.message.chat_id}"
-    product_id = json.loads(_database.get(user))['product_id']
-
+    product_id = context.user_data['product_id']
     if query.data == 'back':
         context.bot.send_message(
             chat_id=query.message.chat_id,
@@ -242,7 +235,6 @@ def handle_users_reply(update, context, client_id):
         user_state = 'START'
     else:
         user_state = db.get(chat_id)
-
     states_functions = {
         'START': partial(start, products=products),
         'HANDLE_MENU': partial(handle_menu, access_token=access_token),
@@ -251,6 +243,9 @@ def handle_users_reply(update, context, client_id):
         'WAITING_EMAIL': partial(handle_waiting_email, access_token=access_token),
     }
     state_handler = states_functions[user_state]
+    next_state = state_handler(context, update)
+    db.set(chat_id, next_state)
+
 
 
 def get_database_connection():
