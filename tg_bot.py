@@ -213,15 +213,16 @@ def handle_waiting_email(context, update, access_token):
 
 def handle_users_reply(update, context, client_id):
     db = get_database_connection()
-    if context.user_data.get('token_timestamp'):
-        diff = datetime.now() - context.user_data['token_timestamp']
-        if diff.total_seconds() >= 3600:
-            context.user_data['token_timestamp'] = datetime.now()
-            context.user_data['access_token'] = get_token(client_id)
-    else:
-        context.user_data['token_timestamp'] = datetime.now()
-        context.user_data['access_token'] = get_token(client_id)
-    access_token = context.user_data['access_token']
+
+    if context.bot_data.get('token_timestamp'):
+        diff = datetime.now() - context.bot_data['token_timestamp']
+        context.user_data['time_diff'] = diff
+    elif not (context.bot_data.get('token_timestamp')) or (
+            context.bot_data['time_diff'].total_seconds() >= 3600):
+        context.bot_data['token_timestamp'] = datetime.now()
+        context.bot_data['access_token'] = get_token(client_id)
+
+    access_token = context.bot_data['access_token']
     products = get_products(access_token)
     if update.message:
         user_reply = update.message.text
