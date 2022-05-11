@@ -216,7 +216,7 @@ def handle_users_reply(update, context, client_id):
 
     if context.bot_data.get('token_timestamp'):
         diff = datetime.now() - context.bot_data['token_timestamp']
-        context.user_data['time_diff'] = diff
+        context.bot_data['time_diff'] = diff
     elif not (context.bot_data.get('token_timestamp')) or (
             context.bot_data['time_diff'].total_seconds() >= 3600):
         context.bot_data['token_timestamp'] = datetime.now()
