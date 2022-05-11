@@ -214,8 +214,6 @@ def handle_waiting_email(context, update, access_token):
 def handle_users_reply(update, context, client_id):
     db = get_database_connection()
 
-    if context.bot_data.get('token_timestamp'):
-        context.bot_data['time_diff'] = datetime.now() - context.bot_data['token_timestamp']
     token_timestamp = context.bot_data.get('token_timestamp')
     if not token_timestamp or datetime.now() - token_timestamp >= 3600:
         context.bot_data['token_timestamp'] = datetime.now()
