@@ -7,7 +7,7 @@ Telegram-бот для продажи рыбы (@FishStoreDvmnBot)
 * Python3 должен быть установлен
 * Скопировать репозиторий к себе на компьютер:
 ```
-https://github.com/clownkill/quiz_bot
+https://github.com/clownkill/fish_shop
 ```
 * Установите зависимости:
 ```
